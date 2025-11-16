@@ -5,11 +5,12 @@ fn main() {
 
     for (i, location) in calendar().iter().enumerate() {
         let day = i + 1;
-        println!("**Day {day}**\n");
+        println!("**Day {day}**");
 
         let (easy, hard) = *location;
-        println!("Easy: {}", solve_and_format(easy));
-        println!("Hard: {}", solve_and_format(hard));
+        let easy = solve_and_format(easy);
+        let hard = solve_and_format(hard);
+        println!("  Easy: {easy}\n  Hard: {hard}\n");
     }
 }
 

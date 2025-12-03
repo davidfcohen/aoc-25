@@ -2,6 +2,7 @@
 
 use std::time::{Duration, Instant};
 
+pub use gift_shop::GiftShop;
 pub use secret_entrance::SecretEntrance;
 
 pub trait Day {
@@ -162,6 +163,32 @@ pub mod secret_entrance {
     impl Default for Dial {
         fn default() -> Self {
             Self { tick: DIAL_START }
+        }
+    }
+}
+
+pub mod gift_shop {
+    use super::Day;
+
+    #[derive(Debug, Default, Clone)]
+    pub struct GiftShop {
+        easy: Option<u32>,
+        hard: Option<u32>,
+    }
+
+    impl GiftShop {
+        pub fn new() -> Self {
+            GiftShop::default()
+        }
+    }
+
+    impl Day for GiftShop {
+        fn format_easy(&self) -> Option<String> {
+            self.easy.map(|easy| format!("{easy}"))
+        }
+
+        fn format_hard(&self) -> Option<String> {
+            self.hard.map(|hard| format!("{hard}"))
         }
     }
 }

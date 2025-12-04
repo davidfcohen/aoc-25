@@ -58,20 +58,18 @@ pub mod secret_entrance {
             let mut dial = Dial::new();
 
             let mut zeros = 0;
-            for instruction in document.split('\n').map(|i| i.as_bytes()) {
-                if let Some((direction, distance)) = parse_instruction(instruction) {
-                    match direction {
-                        Direction::Right => {
-                            dial.rotate_right(distance);
-                        }
-                        Direction::Left => {
-                            dial.rotate_left(distance);
-                        }
+            for (direction, distance) in document.split('\n').filter_map(|i| parse_instruction(i)) {
+                match direction {
+                    Direction::Right => {
+                        dial.rotate_right(distance);
                     }
+                    Direction::Left => {
+                        dial.rotate_left(distance);
+                    }
+                }
 
-                    if dial.tick() == 0 {
-                        zeros += 1;
-                    }
+                if dial.tick() == 0 {
+                    zeros += 1;
                 }
             }
 
@@ -82,15 +80,13 @@ pub mod secret_entrance {
             let mut dial = Dial::new();
 
             let mut zeros = 0;
-            for instruction in document.split('\n').map(|i| i.as_bytes()) {
-                if let Some((direction, distance)) = parse_instruction(instruction) {
-                    match direction {
-                        Direction::Right => {
-                            zeros += dial.rotate_right(distance);
-                        }
-                        Direction::Left => {
-                            zeros += dial.rotate_left(distance);
-                        }
+            for (direction, distance) in document.split('\n').filter_map(|i| parse_instruction(i)) {
+                match direction {
+                    Direction::Right => {
+                        zeros += dial.rotate_right(distance);
+                    }
+                    Direction::Left => {
+                        zeros += dial.rotate_left(distance);
                     }
                 }
             }
@@ -105,8 +101,8 @@ pub mod secret_entrance {
         Left,
     }
 
-    fn parse_instruction(instruction: &[u8]) -> Option<(Direction, u32)> {
-        let mut iter = instruction.iter();
+    fn parse_instruction(instruction: &str) -> Option<(Direction, u32)> {
+        let mut iter = instruction.as_bytes().iter();
 
         let direction = iter.next().and_then(|ch| match ch {
             b'R' => Some(Direction::Right),
@@ -172,8 +168,8 @@ pub mod gift_shop {
 
     #[derive(Debug, Default, Clone)]
     pub struct GiftShop {
-        easy: Option<u32>,
-        hard: Option<u32>,
+        easy: Option<u64>,
+        hard: Option<u64>,
     }
 
     impl GiftShop {
@@ -190,5 +186,54 @@ pub mod gift_shop {
         fn format_hard(&self) -> Option<String> {
             self.hard.map(|hard| format!("{hard}"))
         }
+
+        fn solve_easy(&mut self, document: &str) {
+            let mut invalid_sum = 0;
+
+            for (start, end) in document.trim().split(',').filter_map(|r| parse_range(r)) {
+                for product_id in start..=end {
+                    let num_digits = product_id.ilog10() + 1;
+
+                    if num_digits % 2 == 1 {
+                        continue;
+                    }
+
+                    let first_half = product_id / 10u64.pow(num_digits / 2);
+                    let second_half = product_id % 10u64.pow(num_digits / 2);
+
+                    if first_half == second_half {
+                        invalid_sum += product_id;
+                        continue;
+                    }
+                }
+            }
+
+            self.easy = Some(invalid_sum);
+        }
+
+        fn solve_hard(&mut self, document: &str) {
+            for (start, end) in document.trim().split(',').filter_map(|r| parse_range(r)) {
+                for product_id in start..=end {
+                    let num_digits = product_id.ilog10() + 1;
+
+                    if num_digits % 2 == 1 {
+                        continue;
+                    }
+
+                    // extract digits in window..
+                }
+            }
+        }
+    }
+
+    fn parse_range(range: &str) -> Option<(u64, u64)> {
+        let mut iter = range.split('-');
+        let start = iter.next()?.parse().ok()?;
+        let end = iter.next()?.parse().ok()?;
+        Some((start, end))
+    }
+
+    fn extract_digits(product_id: u64, rpos: u32, len: u32) -> u64 {
+        (product_id / 10u64.pow(rpos)) % 10u64.pow(len)
     }
 }

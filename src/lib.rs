@@ -58,20 +58,18 @@ pub mod secret_entrance {
             let mut dial = Dial::new();
 
             let mut zeros = 0;
-            for instruction in document.split('\n').map(|i| i.as_bytes()) {
-                if let Some((direction, distance)) = parse_instruction(instruction) {
-                    match direction {
-                        Direction::Right => {
-                            dial.rotate_right(distance);
-                        }
-                        Direction::Left => {
-                            dial.rotate_left(distance);
-                        }
+            for (direction, distance) in document.split('\n').filter_map(|i| parse_instruction(i)) {
+                match direction {
+                    Direction::Right => {
+                        dial.rotate_right(distance);
                     }
+                    Direction::Left => {
+                        dial.rotate_left(distance);
+                    }
+                }
 
-                    if dial.tick() == 0 {
-                        zeros += 1;
-                    }
+                if dial.tick() == 0 {
+                    zeros += 1;
                 }
             }
 
@@ -82,15 +80,13 @@ pub mod secret_entrance {
             let mut dial = Dial::new();
 
             let mut zeros = 0;
-            for instruction in document.split('\n').map(|i| i.as_bytes()) {
-                if let Some((direction, distance)) = parse_instruction(instruction) {
-                    match direction {
-                        Direction::Right => {
-                            zeros += dial.rotate_right(distance);
-                        }
-                        Direction::Left => {
-                            zeros += dial.rotate_left(distance);
-                        }
+            for (direction, distance) in document.split('\n').filter_map(|i| parse_instruction(i)) {
+                match direction {
+                    Direction::Right => {
+                        zeros += dial.rotate_right(distance);
+                    }
+                    Direction::Left => {
+                        zeros += dial.rotate_left(distance);
                     }
                 }
             }
@@ -105,8 +101,8 @@ pub mod secret_entrance {
         Left,
     }
 
-    fn parse_instruction(instruction: &[u8]) -> Option<(Direction, u32)> {
-        let mut iter = instruction.iter();
+    fn parse_instruction(instruction: &str) -> Option<(Direction, u32)> {
+        let mut iter = instruction.as_bytes().iter();
 
         let direction = iter.next().and_then(|ch| match ch {
             b'R' => Some(Direction::Right),
@@ -172,8 +168,8 @@ pub mod gift_shop {
 
     #[derive(Debug, Default, Clone)]
     pub struct GiftShop {
-        easy: Option<u32>,
-        hard: Option<u32>,
+        easy: Option<u64>,
+        hard: Option<u64>,
     }
 
     impl GiftShop {
@@ -190,5 +186,90 @@ pub mod gift_shop {
         fn format_hard(&self) -> Option<String> {
             self.hard.map(|hard| format!("{hard}"))
         }
+
+        fn solve_easy(&mut self, document: &str) {
+            let mut invalid_sum = 0;
+
+            for (start, end) in document
+                .trim()
+                .split(',')
+                .filter_map(|range| parse_range(range))
+            {
+                for product_id in start..=end {
+                    let len = count_digits(product_id);
+
+                    if len % 2 != 0 {
+                        continue;
+                    }
+
+                    let mid = len / 2;
+                    let left = rslice_digits(product_id, mid, mid);
+                    let right = rslice_digits(product_id, 0, mid);
+
+                    if left == right {
+                        invalid_sum += product_id;
+                    }
+                }
+            }
+
+            self.easy = Some(invalid_sum);
+        }
+
+        fn solve_hard(&mut self, document: &str) {
+            let mut invalid_sum = 0;
+
+            for (start, end) in document
+                .trim()
+                .split(',')
+                .filter_map(|range| parse_range(range))
+            {
+                for product_id in start..=end {
+                    if is_repeated_pattern(product_id) {
+                        invalid_sum += product_id;
+                    }
+                }
+            }
+
+            self.hard = Some(invalid_sum)
+        }
+    }
+
+    fn is_repeated_pattern(product_id: u64) -> bool {
+        let len = count_digits(product_id);
+
+        let mid = len / 2;
+        (1..=mid)
+            .rev()
+            .any(|window| is_repeated_pattern_window(product_id, len, window))
+    }
+
+    fn is_repeated_pattern_window(product_id: u64, len: u32, window: u32) -> bool {
+        if len % window != 0 {
+            return false;
+        }
+
+        let mut right = rslice_digits(product_id, 0, window);
+        (window..len).step_by(window as usize).all(|left_rpos| {
+            let left = rslice_digits(product_id, left_rpos, window);
+            let is_eq = left == right;
+            right = left;
+            is_eq
+        })
+    }
+
+    fn parse_range(range: &str) -> Option<(u64, u64)> {
+        let mut iter = range.split('-');
+        let start = iter.next()?.parse().ok()?;
+        let end = iter.next()?.parse().ok()?;
+        Some((start, end))
+    }
+
+    fn count_digits(product_id: u64) -> u32 {
+        product_id.ilog10() + 1
+    }
+
+    fn rslice_digits(product_id: u64, rpos: u32, len: u32) -> u64 {
+        assert!(len <= product_id.ilog10() + 1);
+        (product_id / 10u64.pow(rpos)) % 10u64.pow(len)
     }
 }

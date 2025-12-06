@@ -11,7 +11,7 @@ pub trait Location {
 pub mod secret_entrance {
     use super::Location;
 
-    #[derive(Debug, Default, Clone)]
+    #[derive(Debug, Clone)]
     pub struct SecretEntrance;
 
     impl Location for SecretEntrance {
@@ -127,7 +127,7 @@ pub mod secret_entrance {
 pub mod gift_shop {
     use super::Location;
 
-    #[derive(Debug, Default, Clone)]
+    #[derive(Debug, Clone)]
     pub struct GiftShop;
 
     impl Location for GiftShop {

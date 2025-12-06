@@ -1,8 +1,11 @@
 #![warn(missing_debug_implementations)]
 
-use std::{env, error, fs, process};
+use std::{
+    env, error, fs, process,
+    time::{Duration, Instant},
+};
 
-use aoc::{Day, GiftShop, SecretEntrance};
+use aoc::{GiftShop, Location, SecretEntrance};
 
 fn main() {
     let mut args = env::args();
@@ -32,19 +35,17 @@ fn main() {
 }
 
 fn run(day: u32, document: &str) {
-    let mut calendar = calendar();
+    let calendar = calendar();
     let day = (day as usize).max(1).min(calendar.len());
-    let puzzle = &mut calendar[day - 1];
+    let location = calendar[day - 1];
 
     println!("# Day {day}\n");
 
-    let time = puzzle.measure_easy(&document).as_micros();
-    let result = puzzle.format_easy().unwrap_or(String::from("Unsolved"));
-    println!("**Easy**\n  {result}\n  {time} μs\n");
+    let (result, elapsed) = measure_easy(location, &document);
+    println!("**Easy**\n  {result}\n  {} μs\n", elapsed.as_micros());
 
-    let time = puzzle.measure_hard(&document).as_micros();
-    let result = puzzle.format_hard().unwrap_or(String::from("Unsolved"));
-    println!("**Hard**\n  {result}\n  {time} μs\n");
+    let (result, elapsed) = measure_hard(location, &document);
+    println!("**Hard**\n  {result}\n  {} μs\n", elapsed.as_micros());
 }
 
 fn print_usage(name: &str) {
@@ -55,6 +56,20 @@ fn print_error(error: &dyn error::Error) {
     eprintln!("error: {error}")
 }
 
-fn calendar() -> [Box<dyn Day>; 2] {
-    [Box::new(SecretEntrance::new()), Box::new(GiftShop::new())]
+fn measure_easy(location: &dyn Location, document: &str) -> (u64, Duration) {
+    let start = Instant::now();
+    let result = location.solve_easy(document);
+    let elapsed = start.elapsed();
+    (result, elapsed)
+}
+
+fn measure_hard(location: &dyn Location, document: &str) -> (u64, Duration) {
+    let start = Instant::now();
+    let result = location.solve_hard(document);
+    let elapsed = start.elapsed();
+    (result, elapsed)
+}
+
+fn calendar() -> [&'static dyn Location; 2] {
+    [&SecretEntrance, &GiftShop]
 }

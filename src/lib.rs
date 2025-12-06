@@ -1,60 +1,21 @@
 #![warn(missing_debug_implementations)]
 
-use std::time::{Duration, Instant};
-
 pub use gift_shop::GiftShop;
 pub use secret_entrance::SecretEntrance;
 
-pub trait Day {
-    fn solve_easy(&mut self, _document: &str) {}
-
-    fn solve_hard(&mut self, _document: &str) {}
-
-    fn format_easy(&self) -> Option<String> {
-        None
-    }
-    fn format_hard(&self) -> Option<String> {
-        None
-    }
-
-    fn measure_easy(&mut self, document: &str) -> Duration {
-        let start = Instant::now();
-        self.solve_easy(document);
-        start.elapsed()
-    }
-
-    fn measure_hard(&mut self, document: &str) -> Duration {
-        let start = Instant::now();
-        self.solve_hard(document);
-        start.elapsed()
-    }
+pub trait Location {
+    fn solve_easy(&self, document: &str) -> u64;
+    fn solve_hard(&self, document: &str) -> u64;
 }
 
 pub mod secret_entrance {
-    use super::Day;
+    use super::Location;
 
     #[derive(Debug, Default, Clone)]
-    pub struct SecretEntrance {
-        easy: Option<u32>,
-        hard: Option<u32>,
-    }
+    pub struct SecretEntrance;
 
-    impl SecretEntrance {
-        pub fn new() -> Self {
-            Self::default()
-        }
-    }
-
-    impl Day for SecretEntrance {
-        fn format_easy(&self) -> Option<String> {
-            self.easy.map(|easy| format!("{easy}"))
-        }
-
-        fn format_hard(&self) -> Option<String> {
-            self.hard.map(|hard| format!("{hard}"))
-        }
-
-        fn solve_easy(&mut self, document: &str) {
+    impl Location for SecretEntrance {
+        fn solve_easy(&self, document: &str) -> u64 {
             let mut dial = Dial::new();
 
             let mut zeros = 0;
@@ -73,10 +34,10 @@ pub mod secret_entrance {
                 }
             }
 
-            self.easy = Some(zeros);
+            zeros as u64
         }
 
-        fn solve_hard(&mut self, document: &str) {
+        fn solve_hard(&self, document: &str) -> u64 {
             let mut dial = Dial::new();
 
             let mut zeros = 0;
@@ -91,7 +52,7 @@ pub mod secret_entrance {
                 }
             }
 
-            self.hard = Some(zeros);
+            zeros as u64
         }
     }
 
@@ -164,30 +125,13 @@ pub mod secret_entrance {
 }
 
 pub mod gift_shop {
-    use super::Day;
+    use super::Location;
 
     #[derive(Debug, Default, Clone)]
-    pub struct GiftShop {
-        easy: Option<u64>,
-        hard: Option<u64>,
-    }
+    pub struct GiftShop;
 
-    impl GiftShop {
-        pub fn new() -> Self {
-            GiftShop::default()
-        }
-    }
-
-    impl Day for GiftShop {
-        fn format_easy(&self) -> Option<String> {
-            self.easy.map(|easy| format!("{easy}"))
-        }
-
-        fn format_hard(&self) -> Option<String> {
-            self.hard.map(|hard| format!("{hard}"))
-        }
-
-        fn solve_easy(&mut self, document: &str) {
+    impl Location for GiftShop {
+        fn solve_easy(&self, document: &str) -> u64 {
             let mut invalid_sum = 0;
 
             for (start, end) in document
@@ -212,10 +156,10 @@ pub mod gift_shop {
                 }
             }
 
-            self.easy = Some(invalid_sum);
+            invalid_sum
         }
 
-        fn solve_hard(&mut self, document: &str) {
+        fn solve_hard(&self, document: &str) -> u64 {
             let mut invalid_sum = 0;
 
             for (start, end) in document
@@ -230,7 +174,7 @@ pub mod gift_shop {
                 }
             }
 
-            self.hard = Some(invalid_sum)
+            invalid_sum
         }
     }
 

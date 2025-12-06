@@ -5,7 +5,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use aoc::{GiftShop, Location, SecretEntrance};
+use aoc::{GiftShop, Lobby, Location, SecretEntrance};
 
 fn main() {
     let mut args = env::args();
@@ -70,6 +70,6 @@ fn measure_hard(location: &dyn Location, document: &str) -> (u64, Duration) {
     (result, elapsed)
 }
 
-fn calendar() -> [&'static dyn Location; 2] {
-    [&SecretEntrance, &GiftShop]
+fn calendar() -> &'static [&'static dyn Location] {
+    &[&SecretEntrance, &GiftShop, &Lobby]
 }

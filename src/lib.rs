@@ -1,6 +1,7 @@
 #![warn(missing_debug_implementations)]
 
 pub use gift_shop::GiftShop;
+pub use lobby::Lobby;
 pub use secret_entrance::SecretEntrance;
 
 pub trait Location {
@@ -215,5 +216,83 @@ pub mod gift_shop {
     fn rslice_digits(product_id: u64, rpos: u32, len: u32) -> u64 {
         assert!(len <= product_id.ilog10() + 1);
         (product_id / 10u64.pow(rpos)) % 10u64.pow(len)
+    }
+}
+
+mod lobby {
+    use std::collections::BinaryHeap;
+
+    use super::Location;
+
+    #[derive(Debug, Clone)]
+    pub struct Lobby;
+
+    impl Location for Lobby {
+        fn solve_easy(&self, document: &str) -> u64 {
+            let mut total_jolts = 0;
+
+            for bank in document.split('\n') {
+                let mut batteries = BinaryHeap::new();
+
+                for (i, jolts) in bank
+                    .as_bytes()
+                    .into_iter()
+                    .enumerate()
+                    .filter_map(|(i, ch)| ch.is_ascii_digit().then_some((i, ch - b'0')))
+                {
+                    batteries.push(Battery { jolts, i });
+                }
+
+                if batteries.len() < 2 {
+                    continue;
+                }
+
+                let higher = batteries.pop().unwrap();
+                let high = batteries.pop().unwrap();
+                dbg!(&higher);
+                dbg!(&high);
+
+                let bank_jolts = if higher.i < high.i {
+                    higher.jolts * 10 + high.jolts
+                } else {
+                    high.jolts * 10 + higher.jolts
+                };
+
+                dbg!(bank_jolts);
+                total_jolts += bank_jolts as u64;
+            }
+
+            total_jolts
+        }
+
+        fn solve_hard(&self, _document: &str) -> u64 {
+            0
+        }
+    }
+
+    #[derive(Debug, Clone)]
+    struct Battery {
+        jolts: u8,
+        i: usize,
+    }
+
+    impl PartialEq for Battery {
+        fn eq(&self, other: &Self) -> bool {
+            self.jolts == other.jolts
+        }
+    }
+
+    impl Eq for Battery {}
+
+    impl PartialOrd for Battery {
+        fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+            Some(self.cmp(&other))
+        }
+    }
+
+    impl Ord for Battery {
+        fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+            self.jolts.cmp(&other.jolts)
+        }
     }
 }

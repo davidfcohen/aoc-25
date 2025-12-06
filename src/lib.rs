@@ -190,20 +190,24 @@ pub mod gift_shop {
         fn solve_easy(&mut self, document: &str) {
             let mut invalid_sum = 0;
 
-            for (start, end) in document.trim().split(',').filter_map(|r| parse_range(r)) {
+            for (start, end) in document
+                .trim()
+                .split(',')
+                .filter_map(|range| parse_range(range))
+            {
                 for product_id in start..=end {
-                    let num_digits = product_id.ilog10() + 1;
+                    let len = count_digits(product_id);
 
-                    if num_digits % 2 == 1 {
+                    if len % 2 != 0 {
                         continue;
                     }
 
-                    let first_half = product_id / 10u64.pow(num_digits / 2);
-                    let second_half = product_id % 10u64.pow(num_digits / 2);
+                    let mid = len / 2;
+                    let left = rslice_digits(product_id, mid, mid);
+                    let right = rslice_digits(product_id, 0, mid);
 
-                    if first_half == second_half {
+                    if left == right {
                         invalid_sum += product_id;
-                        continue;
                     }
                 }
             }
@@ -212,18 +216,45 @@ pub mod gift_shop {
         }
 
         fn solve_hard(&mut self, document: &str) {
-            for (start, end) in document.trim().split(',').filter_map(|r| parse_range(r)) {
+            let mut invalid_sum = 0;
+
+            for (start, end) in document
+                .trim()
+                .split(',')
+                .filter_map(|range| parse_range(range))
+            {
                 for product_id in start..=end {
-                    let num_digits = product_id.ilog10() + 1;
-
-                    if num_digits % 2 == 1 {
-                        continue;
+                    if is_repeated_pattern(product_id) {
+                        invalid_sum += product_id;
                     }
-
-                    // extract digits in window..
                 }
             }
+
+            self.hard = Some(invalid_sum)
         }
+    }
+
+    fn is_repeated_pattern(product_id: u64) -> bool {
+        let len = count_digits(product_id);
+
+        let mid = len / 2;
+        (1..=mid)
+            .rev()
+            .any(|window| is_repeated_pattern_window(product_id, len, window))
+    }
+
+    fn is_repeated_pattern_window(product_id: u64, len: u32, window: u32) -> bool {
+        if len % window != 0 {
+            return false;
+        }
+
+        let mut right = rslice_digits(product_id, 0, window);
+        (window..len).step_by(window as usize).all(|left_rpos| {
+            let left = rslice_digits(product_id, left_rpos, window);
+            let is_eq = left == right;
+            right = left;
+            is_eq
+        })
     }
 
     fn parse_range(range: &str) -> Option<(u64, u64)> {
@@ -233,7 +264,12 @@ pub mod gift_shop {
         Some((start, end))
     }
 
-    fn extract_digits(product_id: u64, rpos: u32, len: u32) -> u64 {
+    fn count_digits(product_id: u64) -> u32 {
+        product_id.ilog10() + 1
+    }
+
+    fn rslice_digits(product_id: u64, rpos: u32, len: u32) -> u64 {
+        assert!(len <= product_id.ilog10() + 1);
         (product_id / 10u64.pow(rpos)) % 10u64.pow(len)
     }
 }

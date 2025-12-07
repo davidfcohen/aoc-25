@@ -244,14 +244,14 @@ mod lobby {
                     .enumerate()
                     .filter(|(_, jolts)| is_capacity_repeated(&mut capacities, *jolts))
                     .max_by_key(|(_, jolts)| *jolts)
-                    .expect("bank has at least two batteries");
+                    .expect("bank has at least 2 batteries");
 
                 let ones = bank
                     .iter()
                     .map(|ch| ch - b'0')
                     .skip(i + 1)
                     .max()
-                    .expect("bank has at least two batteries");
+                    .expect("bank has at least 2 batteries");
 
                 jolts += (10 * tens + ones) as u64;
             }

@@ -220,6 +220,8 @@ pub mod gift_shop {
 }
 
 mod lobby {
+    use crate::is_capacity_repeated;
+
     use super::Location;
 
     #[derive(Debug, Clone)]
@@ -229,7 +231,30 @@ mod lobby {
         fn solve_easy(&self, document: &str) -> u64 {
             let mut jolts = 0;
 
-            for bank in document.trim().split('\n') {}
+            for bank in document.trim().split('\n').map(|line| line.as_bytes()) {
+                if bank.len() < 2 {
+                    continue;
+                }
+
+                let mut capacities = [false; 9];
+                let (i, tens) = bank
+                    .iter()
+                    .map(|ch| *ch - b'0')
+                    .take(bank.len() - 1)
+                    .enumerate()
+                    .filter(|(_, jolts)| is_capacity_repeated(&mut capacities, *jolts))
+                    .max_by_key(|(_, jolts)| *jolts)
+                    .expect("bank has at least two batteries");
+
+                let ones = bank
+                    .iter()
+                    .map(|ch| ch - b'0')
+                    .skip(i + 1)
+                    .max()
+                    .expect("bank has at least two batteries");
+
+                jolts += (10 * tens + ones) as u64;
+            }
 
             jolts
         }
@@ -238,4 +263,11 @@ mod lobby {
             0
         }
     }
+}
+
+fn is_capacity_repeated(capacities: &mut [bool; 9], jolts: u8) -> bool {
+    let i = (jolts - 1) as usize;
+    let is_visited = capacities[i];
+    capacities[i] = true;
+    is_visited
 }
